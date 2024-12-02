@@ -9,6 +9,8 @@ import AuthContext from "./AuthContext";
 import BottomTabNavigation from "./src/BottomTabNavigation";
 import PatientDetails from "./src/screens/PatientDetails";
 import { auth } from "./firebaseConfig";
+import PatientRecord from "./src/screens/PatientRecords";
+import { AppRegistry } from 'react-native-web';
 
 const Stack = createNativeStackNavigator();
 
@@ -69,6 +71,7 @@ export default function App() {
           <Stack.Screen name="Signup" component={Signup} />
           <Stack.Screen name="BottomTab" component={BottomTabNavigation} />
           <Stack.Screen name="PatientDetails" component={PatientDetails} />
+          <Stack.Screen name="PatientRecord" component={PatientRecord} />
         </Stack.Navigator>
       </NavigationContainer>
     </AuthContext.Provider>

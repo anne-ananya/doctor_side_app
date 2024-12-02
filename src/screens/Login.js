@@ -4,7 +4,6 @@ import {
   View,
   Image,
   TextInput,
-  Button,
   Pressable,
   ActivityIndicator,
 } from "react-native";
@@ -12,8 +11,10 @@ import React, { useState, useContext } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
 import AuthContext from "../../AuthContext";
+
 const Login = ({ navigation }) => {
   const [loader, setLoader] = useState(false);
+  const [message, setMessage] = useState({ text: "", type: "" });
   const [user, setUser] = useState({
     email: "",
     password: "",
@@ -26,6 +27,7 @@ const Login = ({ navigation }) => {
       ...prevUser,
       email: email,
     }));
+    setMessage({ text: "", type: "" }); // Clear any previous messages
   };
 
   const handlePasswordChange = (password) => {
@@ -33,26 +35,30 @@ const Login = ({ navigation }) => {
       ...prevUser,
       password: password,
     }));
+    setMessage({ text: "", type: "" }); // Clear any previous messages
   };
 
-  // Signin User
   const signinUser = () => {
     setLoader(true);
-    console.log("Sigin btn clicked");
+    setMessage({ text: "", type: "" });
     signInWithEmailAndPassword(auth, user.email, user.password)
       .then((userCredential) => {
-        console.log("Successfully signin", userCredential);
-
-        // --------- context auth --------
         authcontext.signin(userCredential.user.uid, () => {
           navigation.replace("BottomTab");
         });
-
         setLoader(false);
       })
       .catch((error) => {
-        console.log(error);
         setLoader(false);
+        let errorMessage = "An error occurred. Please try again.";
+        if (error.code === "auth/wrong-password") {
+          errorMessage = "Wrong password. Please try again.";
+        } else if (error.code === "auth/user-not-found") {
+          errorMessage = "User not found. Please check your email.";
+        } else if (error.code === "auth/invalid-email") {
+          errorMessage = "Invalid email format.";
+        }
+        setMessage({ text: errorMessage, type: "error" });
       });
   };
 
@@ -66,18 +72,27 @@ const Login = ({ navigation }) => {
       <View style={styles.subContainer}>
         <Text style={styles.headingText}>Welcome Back</Text>
         <Text style={styles.simpleText}>Sign in to continue</Text>
+        {message.text ? (
+          <Text style={[styles.messageBox, styles.error]}>{message.text}</Text>
+        ) : null}
         <TextInput
           style={styles.input}
           placeholder="Enter Email"
           onChangeText={handleEmailChange}
+          value={user.email}
         />
         <TextInput
           style={styles.input}
           placeholder="Enter Password"
           secureTextEntry={true}
           onChangeText={handlePasswordChange}
+          value={user.password}
         />
-        <Pressable style={styles.button} onPress={() => signinUser()}>
+        <Pressable
+          style={[styles.button, loader && styles.buttonDisabled]}
+          onPress={signinUser}
+          disabled={loader} // Disable button during loader state
+        >
           <Text style={styles.buttonText}>Sign In</Text>
         </Pressable>
         <ActivityIndicator animating={loader} size="large" />
@@ -147,7 +162,22 @@ const styles = StyleSheet.create({
     backgroundColor: "#35A2CD",
     borderRadius: 12,
   },
+  buttonDisabled: {
+    backgroundColor: "gray", // Gray out the button when disabled
+  },
   buttonText: {
     color: "#fff",
+  },
+  messageBox: {
+    marginVertical: 10,
+    padding: 10,
+    width: "90%",
+    borderRadius: 8,
+    textAlign: "center",
+    fontSize: 16,
+  },
+  error: {
+    backgroundColor: "#f8d7da",
+    color: "#721c24",
   },
 });

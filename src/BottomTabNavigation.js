@@ -41,7 +41,7 @@ const BottomTabNavigation = () => {
           tabBarLabel: "Add Patient",
           tabBarLabelStyle: {
             position: "relative",
-            bottom: 8,
+            bottom: 5,
           },
           tabBarIcon: ({ focused, color, size }) => (
             <Image
@@ -52,9 +52,9 @@ const BottomTabNavigation = () => {
               }
               style={{
                 position: "relative",
-                bottom: 20,
-                width: size * 2,
-                height: size * 2,
+                bottom: 3,
+                width: size * 1.2,
+                height: size * 1.2,
                 borderRadius: size,
               }}
             />

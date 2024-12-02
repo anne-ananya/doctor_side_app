@@ -4,7 +4,6 @@ import {
   View,
   Image,
   TextInput,
-  Button,
   Pressable,
   ActivityIndicator,
 } from "react-native";
@@ -15,30 +14,26 @@ import { ref, set } from "firebase/database";
 
 const Signup = ({ navigation }) => {
   const [loader, setLoader] = useState(false);
+  const [message, setMessage] = useState({ text: "", type: "" });
   const [user, setUser] = useState({
     username: "",
+    doctorRegNumber: "",
+    qualification: "",
+    yearOfRegistration: "",
     email: "",
     password: "",
   });
-  console.log("UseState: ", user);
+  const [passwordValid, setPasswordValid] = useState(false); // New state for password validation
 
-  // Firebase
   const myFirebase = (userID) => {
     const DBRef = ref(database, "user/" + userID);
     set(DBRef, user);
   };
-  // ----
 
-  const handleUserNameChange = (username) => {
+  const handleChange = (field, value) => {
     setUser((prevUser) => ({
       ...prevUser,
-      username: username,
-    }));
-  };
-  const handleEmailChange = (email) => {
-    setUser((prevUser) => ({
-      ...prevUser,
-      email: email,
+      [field]: value,
     }));
   };
 
@@ -47,19 +42,21 @@ const Signup = ({ navigation }) => {
       ...prevUser,
       password: password,
     }));
+    setPasswordValid(password.length >= 6); // Check if password is valid
   };
 
-  // Signup User
   const signupUser = () => {
     setLoader(true);
+    setMessage({ text: "", type: "" });
     createUserWithEmailAndPassword(auth, user.email, user.password)
       .then((userCredential) => {
         myFirebase(userCredential.user.uid);
-        console.log("Successfully signup");
         setLoader(false);
+        setMessage({ text: "Successfully signed up!", type: "success" });
       })
       .catch((error) => {
-        console.log(error);
+        setLoader(false);
+        setMessage({ text: error.message, type: "error" });
       });
   };
 
@@ -72,15 +69,42 @@ const Signup = ({ navigation }) => {
       <Text style={styles.topText}>Sign Up</Text>
       <View style={styles.subContainer}>
         <Text style={styles.headingText}>Sign up new account</Text>
+        {message.text ? (
+          <Text
+            style={[
+              styles.messageBox,
+              message.type === "success" ? styles.success : styles.error,
+            ]}
+          >
+            {message.text}
+          </Text>
+        ) : null}
         <TextInput
           style={styles.input}
           placeholder="Enter Username"
-          onChangeText={handleUserNameChange}
+          onChangeText={(text) => handleChange("username", text)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Enter Doctor Registration Number"
+          onChangeText={(text) => handleChange("doctorRegNumber", text)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Enter Qualification"
+          onChangeText={(text) => handleChange("qualification", text)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Enter Year of Registration"
+          keyboardType="numeric"
+          onChangeText={(text) => handleChange("yearOfRegistration", text)}
         />
         <TextInput
           style={styles.input}
           placeholder="Enter Email"
-          onChangeText={handleEmailChange}
+          keyboardType="email-address"
+          onChangeText={(text) => handleChange("email", text)}
         />
         <TextInput
           style={styles.input}
@@ -88,7 +112,16 @@ const Signup = ({ navigation }) => {
           secureTextEntry={true}
           onChangeText={handlePasswordChange}
         />
-        <Pressable style={styles.button} onPress={() => signupUser()}>
+        {!passwordValid && user.password.length > 0 && (
+          <Text style={styles.validationMessage}>
+            Password must be at least 6 characters long.
+          </Text>
+        )}
+        <Pressable
+          style={[styles.button, !passwordValid && styles.buttonDisabled]}
+          onPress={signupUser}
+          disabled={!passwordValid} // Disable button if password is invalid
+        >
           <Text style={styles.buttonText}>Sign Up</Text>
         </Pressable>
         <ActivityIndicator animating={loader} size="large" />
@@ -138,13 +171,10 @@ const styles = StyleSheet.create({
     fontSize: 25,
     marginBottom: 13,
   },
-
   input: {
     width: "90%",
     height: 40,
     margin: 12,
-    // borderWidth: 1,
-    // borderColor:'#35A2CD',
     backgroundColor: "rgb(220,220,220)",
     padding: 10,
     borderRadius: 12,
@@ -158,7 +188,31 @@ const styles = StyleSheet.create({
     backgroundColor: "#35A2CD",
     borderRadius: 12,
   },
+  buttonDisabled: {
+    backgroundColor: "gray", // Gray out the button when disabled
+  },
   buttonText: {
     color: "#fff",
+  },
+  validationMessage: {
+    color: "red",
+    fontSize: 12,
+    marginTop: 5,
+  },
+  messageBox: {
+    marginVertical: 10,
+    padding: 10,
+    width: "90%",
+    borderRadius: 8,
+    textAlign: "center",
+    fontSize: 16,
+  },
+  success: {
+    backgroundColor: "#d4edda",
+    color: "#155724",
+  },
+  error: {
+    backgroundColor: "#f8d7da",
+    color: "#721c24",
   },
 });

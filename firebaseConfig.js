@@ -1,35 +1,25 @@
-// Import the functions you need from the SDKs you need
+// firebaseConfig.js
 import { initializeApp } from "firebase/app";
-import {
-  initializeAuth,
-  getReactNativePersistence,
-} from "firebase/auth/react-native";
-import { getDatabase } from "firebase/database";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getAuth } from "firebase/auth";  // For authentication
+import { getDatabase } from "firebase/database";  // For Realtime Database
 
-// Your web app's Firebase configuration
+// Your Firebase config object
 const firebaseConfig = {
-  apiKey: "AIzaSyBh6nDHUBVeDU0DQhPEmlluIt7dCatT6og",
-  authDomain: "patient-tracker-app-479d0.firebaseapp.com",
-  databaseURL: "https://patient-tracker-app-479d0-default-rtdb.firebaseio.com",
-  projectId: "patient-tracker-app-479d0",
-  storageBucket: "patient-tracker-app-479d0.appspot.com",
-  messagingSenderId: "929469016286",
-  appId: "1:929469016286:web:4aa7cc0b4385c2232efa4f",
+  apiKey: "AIzaSyCmxusCy3vqWEJ9mrNIa95Z-CfPW1lRKjA",
+  authDomain: "myrealtimedbapp-4061d.firebaseapp.com",
+  databaseURL: "https://myrealtimedbapp-4061d-default-rtdb.firebaseio.com",
+  projectId: "myrealtimedbapp-4061d",
+  storageBucket: "myrealtimedbapp-4061d.firebasestorage.app",
+  messagingSenderId: "241666837689",
+  appId: "1:241666837689:web:418aa4da8bbab1dec11f68",
+  measurementId: "G-EZXP3588KX"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase Authentication and get a reference to the service
-// initialize auth
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
-
-// Initialize Realtime Database and get a reference to the service
+// Initialize Firebase Authentication and Realtime Database
+const auth = getAuth(app);
 const database = getDatabase(app);
 
 export { auth, database };

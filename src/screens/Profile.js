@@ -5,24 +5,44 @@ import {
   Image,
   TextInput,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
-import { ref, onValue } from "firebase/database";
+import { ref, onValue, update } from "firebase/database";
 import { database } from "../../firebaseConfig";
 import AuthContext from "../../AuthContext";
 import { getAuth, signOut } from "firebase/auth";
 
 const Profile = ({ navigation }) => {
-  const [profileData, setProfileData] = useState();
+  const [profileData, setProfileData] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
+  const [editable, setEditable] = useState(false); // State to toggle edit mode
   const authContext = useContext(AuthContext);
 
   useEffect(() => {
     const dbRef = ref(database, "user/" + authContext.user);
     onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
-      setProfileData(data);
+      if (data) setProfileData(data);
     });
-  }, []);
+  }, [authContext.user]);
+
+  // Save Updated Profile Data
+  const saveProfile = () => {
+    const dbRef = ref(database, "user/" + authContext.user);
+    update(dbRef, profileData)
+      .then(() => {
+        Alert.alert("Success", "Profile updated successfully!");
+        setEditable(false); // Disable edit mode after saving
+      })
+      .catch((error) => {
+        console.error(error);
+        Alert.alert("Error", "Failed to update profile.");
+      });
+  };
 
   // Signout User
   const signOutUser = () => {
@@ -51,25 +71,34 @@ const Profile = ({ navigation }) => {
         <TextInput
           style={styles.input}
           placeholder="Username"
-          value={profileData?.username}
-          editable={false}
+          value={profileData.username}
+          editable={editable}
+          onChangeText={(text) => setProfileData({ ...profileData, username: text })}
         />
         <TextInput
           style={styles.input}
-          placeholder="Email "
-          value={profileData?.email}
-          editable={false}
+          placeholder="Email"
+          value={profileData.email}
+          editable={editable}
+          onChangeText={(text) => setProfileData({ ...profileData, email: text })}
         />
         <TextInput
           style={styles.input}
           placeholder="Password"
           secureTextEntry={true}
-          value={profileData?.password}
-          editable={false}
+          value={profileData.password}
+          editable={editable}
+          onChangeText={(text) => setProfileData({ ...profileData, password: text })}
         />
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Update</Text>
-        </TouchableOpacity>
+        {editable ? (
+          <TouchableOpacity style={styles.button} onPress={saveProfile}>
+            <Text style={styles.buttonText}>Save</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.button} onPress={() => setEditable(true)}>
+            <Text style={styles.buttonText}>Edit</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity style={styles.button} onPress={signOutUser}>
           <Text style={styles.buttonText}>Signout</Text>
         </TouchableOpacity>
@@ -83,7 +112,6 @@ export default Profile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-
     justifyContent: "space-between",
     alignItems: "center",
   },
@@ -105,20 +133,11 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 18,
   },
-  bottomText: {
-    position: "absolute",
-    bottom: 50,
-    color: "white",
-    fontSize: 14,
-  },
   headingText: {
     fontWeight: "bold",
     color: "#35A2CD",
     fontSize: 25,
     marginBottom: 8,
-  },
-  simpleText: {
-    marginBottom: 15,
   },
   input: {
     width: "90%",

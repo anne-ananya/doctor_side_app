@@ -2,5 +2,6 @@
     "editor.defaultFormatter": null,
     "[javascript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
-    }
+    },
+    "terminal.integrated.copyOnSelection": true
 }
