@@ -9,22 +9,33 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import React, { useState, useContext } from "react";
-import RNPickerSelect from "react-native-picker-select";
+import { Picker } from "@react-native-picker/picker";
 import AuthContext from "../../AuthContext";
 import { database } from "../../firebaseConfig";
-import { ref, push, child, update, serverTimestamp } from "firebase/database";
+import {
+  ref,
+  get,
+  push,
+  child,
+  update,
+  serverTimestamp,
+  remove,
+} from "firebase/database";
+import { useRoute } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import sendEmail from "../components/sendEmail"; // Import the email module
+import sendEmail from "../components/sendEmail";
 
 const AddPatient = () => {
+  const route = useRoute();
+  const { preferredDate, patientEmail } = route.params || {};
   const authContext = useContext(AuthContext);
   const [date, setDate] = useState(new Date());
   const [show, setShow] = useState(false);
   const [formData, setFormData] = useState({
     patientName: "",
-    appointmentDate: "",
+    appointmentDate: preferredDate || "",
     patientPhoneNumber: "",
-    patientEmail: "", // Added email field
+    patientEmail: patientEmail || "",
     patientDisease: "",
     cost: "",
     prescription: "",
@@ -51,22 +62,45 @@ const AddPatient = () => {
   ];
 
   const myFirebase = async () => {
-  const newPatientKey = push(child(ref(database), "patients")).key;
-  const updates = {};
-  updates["/patients/" + newPatientKey] = formData;
-
-  try {
-    await update(ref(database), updates);
-    console.log("Patient data saved successfully!");
-
-    // Send email
-    await sendEmail(formData);
-  } catch (error) {
-    console.error("Error updating patient data or sending email:", error);
-    alert("Patient added, but email could not be sent.");
-  }
-};
-
+    const newPatientKey = push(child(ref(database), "patients")).key;
+    const patientRefPath = "/patients/" + newPatientKey;
+    const updates = {};
+    updates[patientRefPath] = formData;
+  
+    try {
+      // ✅ Add patient
+      await update(ref(database), updates);
+      console.log("✅ Patient data saved successfully!");
+  
+      // ✅ Send email
+      await sendEmail(formData);
+  
+      // ✅ Find and delete appointment request
+      const snapshot = await get(child(ref(database), "appointmentRequests"));
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const matchedEntry = Object.entries(data).find(
+          ([id, request]) => request.patientEmail === formData.patientEmail
+        );
+  
+        if (matchedEntry) {
+          const [requestId] = matchedEntry;
+          const requestRef = ref(database, `appointmentRequests/${requestId}`);
+          await remove(requestRef);
+          console.log("🗑️ Appointment request deleted successfully.");
+        } else {
+          console.warn("⚠️ No matching appointment request found.");
+        }
+      }
+  
+      alert("✅ Patient added and appointment request removed.");
+    } catch (error) {
+      console.error("❌ Error updating patient data or sending email:", error);
+      alert("⚠️ Patient added, but email or request removal failed.");
+    }
+  };
+  
+  
 
   const handleDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || date;
@@ -104,8 +138,9 @@ const AddPatient = () => {
           />
           <TextInput
             style={styles.input}
-            placeholder="Patient Email" // Added email input
+            placeholder="Patient Email"
             keyboardType="email-address"
+            value={formData.patientEmail}
             onChangeText={(text) =>
               setFormData({ ...formData, patientEmail: text })
             }
@@ -125,15 +160,21 @@ const AddPatient = () => {
               setFormData({ ...formData, patientPhoneNumber: text })
             }
           />
+
           <View style={styles.input}>
-            <RNPickerSelect
+            <Picker
+              selectedValue={formData.patientDisease}
               onValueChange={(value) =>
                 setFormData({ ...formData, patientDisease: value })
               }
-              items={pickerItems}
-              placeholder={{ label: "Select Disease", value: "" }}
-            />
+            >
+              <Picker.Item label="Select Disease" value="" />
+              {pickerItems.map((item, index) => (
+                <Picker.Item key={index} label={item.label} value={item.value} />
+              ))}
+            </Picker>
           </View>
+
           <TextInput
             style={styles.input}
             placeholder="Cost"
@@ -159,7 +200,6 @@ const AddPatient = () => {
 };
 
 export default AddPatient;
-
 
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: "center" },

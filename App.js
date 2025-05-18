@@ -10,7 +10,7 @@ import BottomTabNavigation from "./src/BottomTabNavigation";
 import PatientDetails from "./src/screens/PatientDetails";
 import { auth } from "./firebaseConfig";
 import PatientRecord from "./src/screens/PatientRecords";
-import { AppRegistry } from 'react-native-web';
+import RequestAppointments from "./src/screens/RequestAppointments";  // import the screen
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +23,7 @@ export default function App() {
       if (user) {
         console.log("User is signed in");
         setUser(user.uid);
+        console.log("🧑‍⚕️ Logged-in user UID:", user.uid); // Print the UID of the logged-in user
         setLoader(false);
       } else {
         console.log("User is not signed in");
@@ -72,6 +73,11 @@ export default function App() {
           <Stack.Screen name="BottomTab" component={BottomTabNavigation} />
           <Stack.Screen name="PatientDetails" component={PatientDetails} />
           <Stack.Screen name="PatientRecord" component={PatientRecord} />
+          <Stack.Screen 
+            name="RequestAppointments" 
+            component={RequestAppointments} 
+            initialParams={{ doctorId: user }} // Pass the doctorId here
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </AuthContext.Provider>

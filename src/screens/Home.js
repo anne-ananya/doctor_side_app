@@ -21,7 +21,11 @@ import {
   equalTo,
 } from "firebase/database";
 import { database } from "../../firebaseConfig";
+import { RequestAppointments } from "./RequestAppointments"
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { LinearGradient } from 'expo-linear-gradient';
+
+
 
 const Home = ({ navigation }) => {
   const [searchText, setSearchText] = useState("");
@@ -86,29 +90,29 @@ const Home = ({ navigation }) => {
             <Text
               style={{
                 color: "white",
-                fontSize: 32,
+                fontSize: 30,
                 fontWeight: "bold",
                 paddingTop: 10,
               }}
             >
               {" "}
-              Find your Patient{" "}
+              Patient Tracker{" "}
             </Text>
             <Text
               style={{
                 color: "white",
-                fontSize: 24,
-                fontWeight: "bold",
+                fontSize: 20,   
+                fontStyle: "italic",
                 paddingTop: 5,
                 paddingBottom: 10,
               }}
             >
-              {" "}
-              Right Now
+              {""}
+              A commitment to community.
             </Text>
           </View>
           <Pressable
-            style={{ padding: 10, width: "90%" }}
+            style={{marginLeft:-50, marginTop:55, marginRight:30, padding: 10, width: "90%" }}
             onPress={() => navigation.navigate("Profile")}
           >
             <Image
@@ -163,6 +167,40 @@ const Home = ({ navigation }) => {
             alignItems: "center",
           }}
         >
+        <LinearGradient
+  colors={["#03e5b7", "#037ade"]}
+  start={{ x: 0, y: 0 }}
+  end={{ x: 1, y: 1 }}
+  style={{
+    borderRadius: 10,
+    width: "50%",
+    marginTop: 20,
+    marginBottom: -20,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden", // ensures rounded corners
+  }}
+>
+  <Pressable
+    style={{
+      flexDirection: "row",
+      padding: 12,
+      width: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+    onPress={() => navigation.navigate("RequestAppointments")}
+  >
+    <Text style={{ color: "white", fontWeight: "bold", fontSize: 14, paddingRight: 10 }}>
+      Requests
+    </Text>
+    <Image
+      source={require("../../assets/icons8-notification-bell-64.png")}
+      style={{ width: 20, height: 20 }}
+    />
+  </Pressable>
+</LinearGradient>
+
           <ViewPatient
             navigation={navigation}
             searchText={searchText}
